@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultancy Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+</head>
+<body>
+    <h1>Consultancy Platform</h1>
+    <button id="loadProgramsBtn">Load Programs</button>
+    <ul id="programList"></ul>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = "https://vbfcjaicxnajrcymshty.supabase.co"; // your Supabase URL
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiZmNqYWljeG5hanJjeW1zaHR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwODE2MTYsImV4cCI6MjA4MTY1NzYxNn0.IrpdvS2kM9Swjy_0iimiCA4XW2PvlUYQYBZU9YQFdIE"; // your anonymous API key
+
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const loadBtn = document.getElementById("loadProgramsBtn");
+        const programList = document.getElementById("programList");
+
+        loadBtn.addEventListener("click", async () => {
+            const { data, error } = await supabase
+                .from('programs')
+                .select('*')
+                .limit(10);
+
+            if (error) {
+                console.error("Error fetching programs:", error);
+                alert("Failed to load programs.");
+                return;
+            }
+
+            programList.innerHTML = ""; // clear previous list
+            data.forEach(p => {
+                const li = document.createElement("li");
+                li.textContent = `${p.program_name} (${p.geography})`;
+                programList.appendChild(li);
+            });
+        });
+    </script>
+</body>
+</html>

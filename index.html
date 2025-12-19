@@ -1,45 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consultancy Platform</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+<meta charset="UTF-8">
+<title>Consultancy Intelligence Platform</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  color: white;
+}
+
+header {
+  padding: 30px;
+  text-align: center;
+}
+
+section {
+  padding: 30px;
+  max-width: 1100px;
+  margin: auto;
+}
+
+.card {
+  background: white;
+  color: black;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 15px 0;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+input, textarea, button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+}
+
+button {
+  background: #ff9800;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #ffc107;
+}
+
+.hidden { display: none; }
+.admin { background: #111; }
+</style>
 </head>
+
 <body>
-    <h1>Consultancy Platform</h1>
-    <button id="loadProgramsBtn">Load Programs</button>
-    <ul id="programList"></ul>
 
-    <script>
-        // Initialize Supabase
-        const SUPABASE_URL = "https://vbfcjaicxnajrcymshty.supabase.co"; // your Supabase URL
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiZmNqYWljeG5hanJjeW1zaHR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwODE2MTYsImV4cCI6MjA4MTY1NzYxNn0.IrpdvS2kM9Swjy_0iimiCA4XW2PvlUYQYBZU9YQFdIE"; // your anonymous API key
+<header>
+  <h1>🌍 Consultancy Intelligence Platform</h1>
+  <p>Real AI-powered search & admin control</p>
+</header>
 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<!-- CUSTOMER SEARCH -->
+<section>
+  <h2>🔍 AI Search</h2>
+  <textarea id="searchInput" placeholder="Ask in plain English..."></textarea>
+  <button onclick="customerAI()">Search</button>
+  <div id="results"></div>
+</section>
 
-        const loadBtn = document.getElementById("loadProgramsBtn");
-        const programList = document.getElementById("programList");
+<!-- ADMIN LOGIN -->
+<section class="admin">
+  <h2>🔐 Admin Login</h2>
+  <input id="email" placeholder="Admin Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+</section>
 
-        loadBtn.addEventListener("click", async () => {
-            const { data, error } = await supabase
-                .from('programs')
-                .select('*')
-                .limit(10);
+<!-- ADMIN PANEL -->
+<section id="adminPanel" class="admin hidden">
+  <h2>🧠 Admin AI Control</h2>
+  <textarea id="adminCommand" placeholder="Add / update / delete programs..."></textarea>
+  <button onclick="adminAI()">Run Admin AI</button>
+  <div id="adminLog"></div>
+</section>
 
-            if (error) {
-                console.error("Error fetching programs:", error);
-                alert("Failed to load programs.");
-                return;
-            }
+<script>
+// 🔴 CONFIG
+const SUPABASE_URL = "https://vbfcjaicxnajrcymshty.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiZmNqYWljeG5hanJjeW1zaHR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwODE2MTYsImV4cCI6MjA4MTY1NzYxNn0.IrpdvS2kM9Swjy_0iimiCA4XW2PvlUYQYBZU9YQFdIE";
+const OPENAI_KEY = "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";
 
-            programList.innerHTML = ""; // clear previous list
-            data.forEach(p => {
-                const li = document.createElement("li");
-                li.textContent = `${p.program_name} (${p.geography})`;
-                programList.appendChild(li);
-            });
-        });
-    </script>
+// INIT
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ---------------- CUSTOMER AI ----------------
+async function customerAI() {
+  const query = document.getElementById("searchInput").value;
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = "🤖 AI thinking...";
+
+  const { data } = await supabase.from("programs").select("*");
+
+  const prompt = `
+User request: "${query}"
+Programs data: ${JSON.stringify(data)}
+Return the best matching programs with explanation.
+`;
+
+  const aiResponse = await callAI(prompt);
+  resultsDiv.innerHTML = `<div class="card">${aiResponse}</div>`;
+}
+
+// ---------------- ADMIN LOGIN ----------------
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return alert("Login failed");
+
+  document.getElementById("adminPanel").classList.remove("hidden");
+  alert("Admin logged in");
+}
+
+// ---------------- ADMIN AI ----------------
+async function adminAI() {
+  const cmd = document.getElementById("adminCommand").value;
+  const log = document.getElementById("adminLog");
+  log.innerHTML = "🤖 Processing...";
+
+  const prompt = `
+You are an admin AI.
+Convert this command into JSON with fields:
+program_name, program_type, geography, owning_company, description.
+
+Command: "${cmd}"
+`;
+
+  const aiJSON = await callAI(prompt);
+
+  try {
+    const parsed = JSON.parse(aiJSON);
+    await supabase.from("programs").insert(parsed);
+    log.innerHTML = "✅ Database updated by AI";
+  } catch {
+    log.innerHTML = "❌ AI output invalid";
+  }
+}
+
+// ---------------- OPENAI CALL ----------------
+async function callAI(prompt) {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${OPENAI_KEY}`
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+
+  const data = await res.json();
+  return data.choices[0].message.content;
+}
+</script>
+
 </body>
 </html>

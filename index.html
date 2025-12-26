@@ -27,6 +27,14 @@
       padding: 10px 20px;
       font-size: 16px;
       cursor: pointer;
+      background-color: #1e293b;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #334155;
     }
 
     pre {
@@ -34,6 +42,7 @@
       background: #020617;
       padding: 15px;
       white-space: pre-wrap;
+      border-radius: 5px;
     }
   </style>
 </head>
@@ -49,33 +58,36 @@
   <pre id="output">Waiting...</pre>
 
   <script>
-    // 🔴 CHANGE THIS
+    // 🔴 CHANGE THESE TO YOUR VALUES
     const SUPABASE_URL = "https://yhuskpncfazxdikklkdk.supabase.co";
-    
-    // 🔴 CHANGE THIS (publishable / anon key)
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodXNrcG5jZmF6eGRpa2tsa2RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2ODIwNDMsImV4cCI6MjA4MjI1ODA0M30.T7VopvE-dJ7sQugavWlKz0EliXKaVx-NGckRyw02YEk
-";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodXNrcG5jZmF6eGRpa2tsa2RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2ODIwNDMsImV4cCI6MjA4MjI1ODA0M30.T7VopvE-dJ7sQugavWlKz0EliXKaVx-NGckRyw02YEk";
 
-    const supabase = supabaseJs.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    );
+    // ✅ Correctly create Supabase client
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function runAI() {
-      const question = document.getElementById("query").value;
-      document.getElementById("output").innerText = "Thinking...";
+      const question = document.getElementById("query").value.trim();
+      const outputEl = document.getElementById("output");
 
-      const { data, error } = await supabase.functions.invoke("ai-search", {
-        body: { question }
-      });
-
-      if (error) {
-        document.getElementById("output").innerText = "Error: " + error.message;
+      if (!question) {
+        outputEl.innerText = "Please type a question first.";
         return;
       }
 
-      document.getElementById("output").innerText =
-        data?.answer || JSON.stringify(data, null, 2);
+      outputEl.innerText = "Thinking...";
+
+      try {
+        const { data, error } = await supabase.functions.invoke("ai-search", {
+          body: { question }
+        });
+
+        if (error) throw error;
+
+        outputEl.innerText = data?.answer || JSON.stringify(data, null, 2);
+      } catch (err) {
+        console.error(err);
+        outputEl.innerText = "Error: " + (err.message || err);
+      }
     }
   </script>
 

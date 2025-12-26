@@ -1,178 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Consultancy Intelligence Platform</title>
+  <meta charset="UTF-8" />
+  <title>AI Search</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  color: white;
-}
-header {
-  padding: 30px;
-  text-align: center;
-}
-section {
-  padding: 30px;
-  max-width: 1100px;
-  margin: auto;
-}
-.card {
-  background: white;
-  color: black;
-  border-radius: 12px;
-  padding: 20px;
-  margin: 15px 0;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-}
-input, textarea, button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  border-radius: 8px;
-  border: none;
-  font-size: 16px;
-}
-button {
-  background: #ff9800;
-  color: black;
-  font-weight: bold;
-  cursor: pointer;
-}
-button:hover {
-  background: #ffc107;
-}
-.hidden { display: none; }
-.admin { background: #111; padding: 20px; border-radius: 12px; margin-top: 20px; }
-</style>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      padding: 40px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    pre {
+      margin-top: 20px;
+      background: #020617;
+      padding: 15px;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
+
 <body>
 
-<header>
-  <h1>🌍 Consultancy Intelligence Platform</h1>
-  <p>Search programs, advisors, and opportunities using AI</p>
-</header>
+  <h1>AI Database Search</h1>
 
-<!-- CUSTOMER SEARCH -->
-<section>
-  <h2>🔍 AI Search</h2>
-  <textarea id="searchInput" placeholder="Ask anything..."></textarea>
-  <button onclick="customerAI()">Search</button>
-  <div id="results"></div>
-</section>
+  <textarea id="query" placeholder="Ask a question..."></textarea>
+  <br />
+  <button onclick="runAI()">Ask AI</button>
 
-<!-- ADMIN LOGIN -->
-<section class="admin">
-  <h2>🔐 Admin Login</h2>
-  <input id="email" placeholder="Admin Email">
-  <input id="password" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-</section>
+  <pre id="output">Waiting...</pre>
 
-<!-- ADMIN PANEL -->
-<section id="adminPanel" class="admin hidden">
-  <h2>🧠 Admin AI Control Panel</h2>
-  <textarea id="adminCommand" placeholder="Example: Add a new CS outreach program in UAE by CGC"></textarea>
-  <button onclick="adminAI()">Run Admin AI</button>
-  <div id="adminLog"></div>
-</section>
+  <script>
+    // 🔴 CHANGE THIS
+    const SUPABASE_URL = "https://yhuskpncfazxdikklkdk.supabase.co";
+    
+    // 🔴 CHANGE THIS (publishable / anon key)
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodXNrcG5jZmF6eGRpa2tsa2RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2ODIwNDMsImV4cCI6MjA4MjI1ODA0M30.T7VopvE-dJ7sQugavWlKz0EliXKaVx-NGckRyw02YEk
+";
 
-<script>
-/* ---------------- SUPABASE CONFIG ---------------- */
-const SUPABASE_URL = "https://vbfcjaicxnajrcymshty.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiZmNqYWljeG5hanJjeW1zaHR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwODE2MTYsImV4cCI6MjA4MTY1NzYxNn0.IrpdvS2kM9Swjy_0iimiCA4XW2PvlUYQYBZU9YQFdIE
-"; // read-only access for frontend
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = supabaseJs.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
 
-const SERVERLESS_FUNCTION_URL = "https://vbfcjaicxnajrcymshty.supabase.co/functions/v1/hyper-function";
+    async function runAI() {
+      const question = document.getElementById("query").value;
+      document.getElementById("output").innerText = "Thinking...";
 
-/* ---------------- CUSTOMER AI ---------------- */
-async function customerAI() {
-  const query = document.getElementById("searchInput").value;
-  const resultsDiv = document.getElementById("results");
-  resultsDiv.innerHTML = "🔄 Searching...";
+      const { data, error } = await supabase.functions.invoke("ai-search", {
+        body: { question }
+      });
 
-  try {
-    const response = await fetch(SERVERLESS_FUNCTION_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "customer", query })
-    });
+      if (error) {
+        document.getElementById("output").innerText = "Error: " + error.message;
+        return;
+      }
 
-    const data = await response.json();
-    resultsDiv.innerHTML = "";
-
-    if(!data || !data.results || data.results.length === 0){
-      resultsDiv.innerHTML = "<div class='card'>No programs found.</div>";
-      return;
+      document.getElementById("output").innerText =
+        data?.answer || JSON.stringify(data, null, 2);
     }
-
-    data.results.forEach(p => {
-      resultsDiv.innerHTML += `
-        <div class="card">
-          <h3>${p.program_name}</h3>
-          <p><b>Company:</b> ${p.owning_company}</p>
-          <p><b>Geography:</b> ${p.geography}</p>
-          <p>${p.description}</p>
-          <a href="${p.application_link}" target="_blank">Apply</a>
-        </div>
-      `;
-    });
-
-    // Optional: show AI summary
-    if(data.ai_summary){
-      resultsDiv.innerHTML += `<div class="card"><b>AI Summary:</b> ${data.ai_summary}</div>`;
-    }
-
-  } catch(err) {
-    resultsDiv.innerHTML = "<div class='card'>❌ Error fetching AI results.</div>";
-    console.error(err);
-  }
-}
-
-/* ---------------- ADMIN LOGIN ---------------- */
-async function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-  if(error) {
-    alert("❌ Login failed");
-    return;
-  }
-
-  document.getElementById("adminPanel").classList.remove("hidden");
-  alert("✅ Admin logged in");
-}
-
-/* ---------------- ADMIN AI ---------------- */
-async function adminAI() {
-  const cmd = document.getElementById("adminCommand").value;
-  const log = document.getElementById("adminLog");
-  log.innerHTML = "🤖 AI processing...";
-
-  try {
-    const response = await fetch(SERVERLESS_FUNCTION_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "admin", command: cmd })
-    });
-
-    const data = await response.json();
-    log.innerHTML = "✅ " + data.message;
-
-  } catch(err) {
-    log.innerHTML = "❌ Error running admin AI";
-    console.error(err);
-  }
-}
-</script>
+  </script>
 
 </body>
 </html>

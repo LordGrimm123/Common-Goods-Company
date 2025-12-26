@@ -62,9 +62,10 @@
     const SUPABASE_URL = "https://yhuskpncfazxdikklkdk.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodXNrcG5jZmF6eGRpa2tsa2RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2ODIwNDMsImV4cCI6MjA4MjI1ODA0M30.T7VopvE-dJ7sQugavWlKz0EliXKaVx-NGckRyw02YEk";
 
-    // ✅ Correctly create Supabase client
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // ✅ Use 'var' to avoid redeclaration errors
+    var supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Make function globally accessible
     async function runAI() {
       const question = document.getElementById("query").value.trim();
       const outputEl = document.getElementById("output");

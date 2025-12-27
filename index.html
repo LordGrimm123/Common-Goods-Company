@@ -4,9 +4,6 @@
   <meta charset="UTF-8" />
   <title>AI Database Search</title>
 
-  <!-- Supabase JS (UMD build) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -62,17 +59,9 @@
   <pre id="output">Waiting...</pre>
 
   <script>
-    // ✅ YOUR SUPABASE DETAILS
-    const SUPABASE_URL = "https://yhuskpncfazxdikklkdk.supabase.co";
-    const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY_HERE";
+    // ✅ Update this URL to your deployed Edge Function
+    const AI_FUNCTION_URL = "https://yhuskpncfazxdikklkdk.supabase.co/functions/v1/ai-search";
 
-    // ✅ Create client ONCE
-    const supabaseClient = supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    );
-
-    // ✅ Function
     async function runAI() {
       const question = document.getElementById("query").value.trim();
       const output = document.getElementById("output");
@@ -85,25 +74,32 @@
       output.textContent = "Thinking...";
 
       try {
-        const { data, error } = await supabaseClient.functions.invoke(
-          "ai-search",
-          { body: { question } }
-        );
+        const response = await fetch(AI_FUNCTION_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ search: question })
+        });
 
-        if (error) throw error;
+        if (!response.ok) {
+          throw new Error(`Function returned ${response.status}`);
+        }
 
-        output.textContent =
-          data?.answer ?? JSON.stringify(data, null, 2);
+        const data = await response.json();
+
+        // If using OpenAI in your Edge Function, the response should contain 'answer'
+        output.textContent = data?.answer
+          ? data.answer
+          : JSON.stringify(data.results ?? data, null, 2);
+
       } catch (err) {
         console.error(err);
         output.textContent = "Error: " + err.message;
       }
     }
 
-    // ✅ Attach click AFTER everything loads
-    document
-      .getElementById("askButton")
-      .addEventListener("click", runAI);
+    document.getElementById("askButton").addEventListener("click", runAI);
   </script>
 
 </body>

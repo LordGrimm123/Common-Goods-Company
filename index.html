@@ -88,10 +88,8 @@
 
         const data = await response.json();
 
-        // If using OpenAI in your Edge Function, the response should contain 'answer'
-        output.textContent = data?.answer
-          ? data.answer
-          : JSON.stringify(data.results ?? data, null, 2);
+        // ✅ Display AI answer
+        output.textContent = data?.answer ?? "No answer received.";
 
       } catch (err) {
         console.error(err);

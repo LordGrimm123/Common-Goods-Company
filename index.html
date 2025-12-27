@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AI Search</title>
+  <title>AI Database Search</title>
 
-  <!-- Supabase JS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase JS (UMD build) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
   <style>
     body {
@@ -62,43 +62,48 @@
   <pre id="output">Waiting...</pre>
 
   <script>
-    // 🔴 CHANGE THESE TO YOUR VALUES
+    // ✅ YOUR SUPABASE DETAILS
     const SUPABASE_URL = "https://yhuskpncfazxdikklkdk.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodXNrcG5jZmF6eGRpa2tsa2RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2ODIwNDMsImV4cCI6MjA4MjI1ODA0M30.T7VopvE-dJ7sQugavWlKz0EliXKaVx-NGckRyw02YEk";
+    const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY_HERE";
 
-    // ✅ Safe declaration to prevent redeclaration errors
-    if (!window.supabase) {
-      window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
+    // ✅ Create client ONCE
+    const supabaseClient = supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
 
-    // Function accessible globally
+    // ✅ Function
     async function runAI() {
       const question = document.getElementById("query").value.trim();
-      const outputEl = document.getElementById("output");
+      const output = document.getElementById("output");
 
       if (!question) {
-        outputEl.innerText = "Please type a question first.";
+        output.textContent = "Please type a question.";
         return;
       }
 
-      outputEl.innerText = "Thinking...";
+      output.textContent = "Thinking...";
 
       try {
-        const { data, error } = await window.supabase.functions.invoke("ai-search", {
-          body: { question }
-        });
+        const { data, error } = await supabaseClient.functions.invoke(
+          "ai-search",
+          { body: { question } }
+        );
 
         if (error) throw error;
 
-        outputEl.innerText = data?.answer || JSON.stringify(data, null, 2);
+        output.textContent =
+          data?.answer ?? JSON.stringify(data, null, 2);
       } catch (err) {
         console.error(err);
-        outputEl.innerText = "Error: " + (err.message || err);
+        output.textContent = "Error: " + err.message;
       }
     }
 
-    // Attach event listener safely
-    document.getElementById("askButton").addEventListener("click", runAI);
+    // ✅ Attach click AFTER everything loads
+    document
+      .getElementById("askButton")
+      .addEventListener("click", runAI);
   </script>
 
 </body>

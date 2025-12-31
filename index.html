@@ -5,24 +5,55 @@
   <title>AI Database Search</title>
 
   <style>
-    body { font-family: Arial; background: #0f172a; color: white; padding: 40px; }
-    textarea { width: 100%; height: 100px; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #334155; background-color: #1e293b; color: white; }
-    button { margin-top: 10px; padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #1e293b; color: white; border: none; border-radius: 5px; }
-    button:hover { background-color: #334155; }
-    pre { margin-top: 20px; background: #020617; padding: 15px; white-space: pre-wrap; border-radius: 5px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      padding: 40px;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #334155;
+      background-color: #1e293b;
+      color: white;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #1e293b;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    pre {
+      margin-top: 20px;
+      background: #020617;
+      padding: 15px;
+      white-space: pre-wrap;
+      border-radius: 5px;
+    }
   </style>
 </head>
+
 <body>
 
   <h1>AI Database Search</h1>
 
-  <textarea id="query" placeholder="Ask a question..."></textarea><br />
+  <textarea id="query" placeholder="Ask a question..."></textarea>
+  <br />
   <button id="askButton">Ask AI</button>
 
   <pre id="output">Waiting...</pre>
 
   <script>
-    const AI_FUNCTION_URL = "https://yhuskpncfazxdikklkdk.supabase.co/functions/v1/ai-search";
+    const FUNCTION_URL =
+      "https://yhuskpncfazxdikklkdk.supabase.co/functions/v1/ai-search";
 
     async function runAI() {
       const question = document.getElementById("query").value.trim();
@@ -36,22 +67,24 @@
       output.textContent = "Thinking...";
 
       try {
-        const response = await fetch(AI_FUNCTION_URL, {
+        const res = await fetch(FUNCTION_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question })
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ question }),
         });
 
-        if (!response.ok) {
-          throw new Error(`Function returned ${response.status}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Request failed");
         }
 
-        const data = await response.json();
-        output.textContent = data.answer || "No answer received.";
-
+        output.textContent = data.answer;
       } catch (err) {
-        console.error(err);
         output.textContent = "Error: " + err.message;
+        console.error(err);
       }
     }
 

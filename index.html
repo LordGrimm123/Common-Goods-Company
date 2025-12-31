@@ -59,8 +59,10 @@
   <pre id="output">Waiting...</pre>
 
   <script>
-    // ✅ Update this URL to your deployed Edge Function
     const AI_FUNCTION_URL = "https://yhuskpncfazxdikklkdk.supabase.co/functions/v1/ai-search";
+
+    // 🔑 PUT YOUR ANON KEY HERE
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodXNrcG5jZmF6eGRpa2tsa2RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2ODIwNDMsImV4cCI6MjA4MjI1ODA0M30.T7VopvE-dJ7sQugavWlKz0EliXKaVx-NGckRyw02YEk";
 
     async function runAI() {
       const question = document.getElementById("query").value.trim();
@@ -77,9 +79,11 @@
         const response = await fetch(AI_FUNCTION_URL, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+            "apikey": SUPABASE_ANON_KEY
           },
-          body: JSON.stringify({ search: question })
+          body: JSON.stringify({ question })
         });
 
         if (!response.ok) {
@@ -87,9 +91,7 @@
         }
 
         const data = await response.json();
-
-        // ✅ Display AI answer
-        output.textContent = data?.answer ?? "No answer received.";
+        output.textContent = data.answer ?? "No answer received.";
 
       } catch (err) {
         console.error(err);

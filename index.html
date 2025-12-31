@@ -5,60 +5,23 @@
   <title>AI Database Search</title>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: white;
-      padding: 40px;
-    }
-
-    textarea {
-      width: 100%;
-      height: 100px;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #334155;
-      background-color: #1e293b;
-      color: white;
-    }
-
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #1e293b;
-      color: white;
-      border: none;
-      border-radius: 5px;
-    }
-
-    button:hover {
-      background-color: #334155;
-    }
-
-    pre {
-      margin-top: 20px;
-      background: #020617;
-      padding: 15px;
-      white-space: pre-wrap;
-      border-radius: 5px;
-    }
+    body { font-family: Arial; background: #0f172a; color: white; padding: 40px; }
+    textarea { width: 100%; height: 100px; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #334155; background-color: #1e293b; color: white; }
+    button { margin-top: 10px; padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #1e293b; color: white; border: none; border-radius: 5px; }
+    button:hover { background-color: #334155; }
+    pre { margin-top: 20px; background: #020617; padding: 15px; white-space: pre-wrap; border-radius: 5px; }
   </style>
 </head>
-
 <body>
+
   <h1>AI Database Search</h1>
 
-  <textarea id="query" placeholder="Ask a question..."></textarea>
-  <br />
+  <textarea id="query" placeholder="Ask a question..."></textarea><br />
   <button id="askButton">Ask AI</button>
 
   <pre id="output">Waiting...</pre>
 
   <script>
-    // ✅ Edge Function URL
     const AI_FUNCTION_URL = "https://yhuskpncfazxdikklkdk.supabase.co/functions/v1/ai-search";
 
     async function runAI() {
@@ -73,31 +36,19 @@
       output.textContent = "Thinking...";
 
       try {
-        // 🔹 Call your Edge Function
         const response = await fetch(AI_FUNCTION_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question })
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-          throw new Error(data.error || "Request failed");
+          throw new Error(`Function returned ${response.status}`);
         }
 
-        // 🔹 Display AI + database results
-        let text = "";
-        if (data.answer) {
-          text += `AI Answer:\n${data.answer}\n\n`;
-        }
-        if (data.db_results) {
-          text += `Database Results:\n${JSON.stringify(data.db_results, null, 2)}`;
-        }
+        const data = await response.json();
+        output.textContent = data.answer || "No answer received.";
 
-        output.textContent = text || "No response received.";
       } catch (err) {
         console.error(err);
         output.textContent = "Error: " + err.message;
@@ -106,6 +57,6 @@
 
     document.getElementById("askButton").addEventListener("click", runAI);
   </script>
+
 </body>
 </html>
-

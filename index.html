@@ -59,11 +59,11 @@
   <pre id="output">Waiting...</pre>
 
   <script>
-    // 🔹 YOUR SUPABASE EDGE FUNCTION URL
+    // ✅ YOUR EDGE FUNCTION URL
     const AI_FUNCTION_URL =
       "https://yhuskpncfazxdikklkdk.supabase.co/functions/v1/ai-search";
 
-    // 🔹 YOUR SUPABASE ANON PUBLIC KEY (SAFE FOR FRONTEND)
+    // ✅ YOUR SUPABASE ANON PUBLIC KEY
     const SUPABASE_ANON_KEY =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodXNrcG5jZmF6eGRpa2tsa2RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2ODIwNDMsImV4cCI6MjA4MjI1ODA0M30.T7VopvE-dJ7sQugavWlKz0EliXKaVx-NGckRyw02YEk";
 
@@ -83,7 +83,8 @@
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "apikey": SUPABASE_ANON_KEY
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
           },
           body: JSON.stringify({ question })
         });
@@ -101,8 +102,7 @@
       }
     }
 
-    document
-      .getElementById("askButton")
+    document.getElementById("askButton")
       .addEventListener("click", runAI);
   </script>
 

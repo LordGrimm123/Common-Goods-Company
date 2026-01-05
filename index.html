@@ -45,13 +45,21 @@
       background-color: #1d4ed8;
     }
 
-    pre {
+    .results {
       margin-top: 24px;
       background: #020617;
       padding: 16px;
-      white-space: pre-wrap;
       border-radius: 6px;
-      min-height: 80px;
+      min-height: 100px;
+      white-space: pre-wrap;
+    }
+
+    .error {
+      color: #f87171;
+    }
+
+    .loading {
+      color: #facc15;
     }
   </style>
 </head>
@@ -64,34 +72,30 @@
   <br />
   <button id="askButton">Ask AI</button>
 
-  <pre id="output">Waiting for input…</pre>
+  <div id="results" class="results">Waiting for input…</div>
 
   <script>
     /**********************************************************
-     * 🔒 CONFIG — THESE ARE THE ONLY TWO THINGS YOU NEED
+     * 🔒 CONFIG — YOUR FUNCTION & ANON KEY
      **********************************************************/
-
-    // ✅ Your deployed Edge Function URL
-    const FUNCTION_URL =
-      "https://yhuskpncfazxdikklkdk.supabase.co/functions/v1/ai-search";
-
-    // ✅ Your Supabase ANON PUBLIC KEY (safe for frontend)
-    const SUPABASE_ANON_KEY =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodXNrcG5jZmF6eGRpa2tsa2RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2ODIwNDMsImV4cCI6MjA4MjI1ODA0M30.T7VopvE-dJ7sQugavWlKz0EliXKaVx-NGckRyw02YEk";
+    const FUNCTION_URL = "https://yhuskpncfazxdikklkdk.supabase.co/functions/v1/ai-search";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodXNrcG5jZmF6eGRpa2tsa2RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2ODIwNDMsImV4cCI6MjA4MjI1ODA0M30.T7VopvE-dJ7sQugavWlKz0EliXKaVx-NGckRyw02YEk";
 
     /**********************************************************
      * 🚀 MAIN FUNCTION
      **********************************************************/
     async function runAI() {
       const question = document.getElementById("query").value.trim();
-      const output = document.getElementById("output");
+      const resultsDiv = document.getElementById("results");
 
       if (!question) {
-        output.textContent = "❗ Please type a question first.";
+        resultsDiv.textContent = "❗ Please type a question first.";
+        resultsDiv.className = "results error";
         return;
       }
 
-      output.textContent = "Thinking…";
+      resultsDiv.textContent = "Thinking…";
+      resultsDiv.className = "results loading";
 
       try {
         const response = await fetch(FUNCTION_URL, {
@@ -110,20 +114,27 @@
           throw new Error(data.error || `Request failed (${response.status})`);
         }
 
-        output.textContent = data.answer
-          ? data.answer
-          : JSON.stringify(data, null, 2);
+        // Display database results in a readable format
+        if (data.answer) {
+          resultsDiv.textContent = data.answer;
+        } else if (data.results) {
+          resultsDiv.textContent = JSON.stringify(data.results, null, 2);
+        } else {
+          resultsDiv.textContent = "No results found.";
+        }
+
+        resultsDiv.className = "results";
 
       } catch (err) {
         console.error(err);
-        output.textContent = "❌ Error: " + err.message;
+        resultsDiv.textContent = "❌ Error: " + err.message;
+        resultsDiv.className = "results error";
       }
     }
 
-    document
-      .getElementById("askButton")
-      .addEventListener("click", runAI);
+    document.getElementById("askButton").addEventListener("click", runAI);
   </script>
 
 </body>
 </html>
+

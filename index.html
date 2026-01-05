@@ -1,58 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>AI Database Search</title>
   <style>
-    body { font-family: Arial; background:#0f172a; color:white; padding:40px; max-width:900px; margin:auto; }
-    h1 { margin-bottom:20px; }
-    textarea { width:100%; height:120px; padding:12px; font-size:16px; border-radius:6px; border:1px solid #334155; background:#1e293b; color:white; resize:vertical; }
-    button { margin-top:12px; padding:12px 24px; font-size:16px; cursor:pointer; background:#2563eb; color:white; border:none; border-radius:6px; }
-    button:hover { background:#1d4ed8; }
-    pre { margin-top:24px; background:#020617; padding:16px; white-space:pre-wrap; border-radius:6px; min-height:80px; }
+    body { background:#0f172a; color:white; font-family:Arial; padding:40px; max-width:900px; margin:auto; }
+    textarea { width:100%; height:120px; background:#1e293b; color:white; padding:12px; border-radius:6px; }
+    button { margin-top:10px; padding:12px 20px; font-size:16px; cursor:pointer; }
+    pre { margin-top:20px; background:#020617; padding:16px; border-radius:6px; }
   </style>
 </head>
 <body>
-  <h1>AI Database Search</h1>
-  <textarea id="query" placeholder="Ask something like: List all counsellors in Europe specialising in finance"></textarea>
-  <br />
-  <button id="askButton">Ask AI</button>
-  <pre id="output">Waiting for input…</pre>
 
-  <script>
-    // 🔹 Edge Function URL
-    const FUNCTION_URL = "https://yhuskpncfazxdikklkdk.supabase.co/functions/v1/ai-search";
+<h1>AI Database Search</h1>
+<textarea id="q" placeholder="List all counsellors in Europe"></textarea>
+<button onclick="run()">Ask</button>
+<pre id="out">Waiting…</pre>
 
-    async function runAI() {
-      const question = document.getElementById("query").value.trim();
-      const output = document.getElementById("output");
+<script>
+const FUNCTION_URL = "https://yhuskpncfazxdikklkdk.supabase.co/functions/v1/ai-search";
 
-      if (!question) {
-        output.textContent = "❗ Please type a question.";
-        return;
-      }
+async function run() {
+  const q = document.getElementById("q").value.trim();
+  const out = document.getElementById("out");
 
-      output.textContent = "Thinking…";
+  if (!q) return out.textContent = "Type a question.";
 
-      try {
-        const res = await fetch(FUNCTION_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question })
-        });
+  out.textContent = "Working…";
 
-        const data = await res.json();
+  try {
+    const res = await fetch(FUNCTION_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: q })
+    });
 
-        if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    const json = await res.json();
+    out.textContent = json.answer || JSON.stringify(json, null, 2);
+  } catch {
+    out.textContent = "Network failure.";
+  }
+}
+</script>
 
-        output.textContent = JSON.stringify(data.answer, null, 2);
-      } catch (err) {
-        console.error(err);
-        output.textContent = "❌ Error: " + err.message;
-      }
-    }
-
-    document.getElementById("askButton").addEventListener("click", runAI);
-  </script>
 </body>
 </html>

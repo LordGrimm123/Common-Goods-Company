@@ -3,46 +3,123 @@
 <head>
   <meta charset="UTF-8" />
   <title>AI Database Search</title>
+
   <style>
-    body { font-family: Arial; background: #0f172a; color: white; padding: 40px; max-width: 900px; margin: auto; }
-    textarea { width: 100%; height: 120px; padding: 12px; font-size: 16px; border-radius: 6px; border: 1px solid #334155; background-color: #1e293b; color: white; resize: vertical; }
-    button { margin-top: 12px; padding: 12px 24px; font-size: 16px; cursor: pointer; background-color: #2563eb; color: white; border: none; border-radius: 6px; }
-    button:hover { background-color: #1d4ed8; }
-    pre { margin-top: 24px; background: #020617; padding: 16px; white-space: pre-wrap; border-radius: 6px; min-height: 80px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      padding: 40px;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background-color: #1e293b;
+      color: white;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 12px;
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+
+    button:hover {
+      background-color: #1d4ed8;
+    }
+
+    pre {
+      margin-top: 24px;
+      background: #020617;
+      padding: 16px;
+      white-space: pre-wrap;
+      border-radius: 6px;
+      min-height: 80px;
+    }
   </style>
 </head>
+
 <body>
+
   <h1>AI Database Search</h1>
-  <textarea id="query" placeholder="Ask something like: List all counsellors in Europe"></textarea><br />
+
+  <textarea id="query" placeholder="Ask a question like: List all counsellors in Europe"></textarea>
+  <br />
   <button id="askButton">Ask AI</button>
+
   <pre id="output">Waiting for input…</pre>
 
   <script>
+    /**********************************************************
+     * CONFIG — Update these with your actual values
+     **********************************************************/
     const FUNCTION_URL = "https://yhuskpncfazxdikklkdk.supabase.co/functions/v1/ai-search";
 
+    // Public ANON key for frontend usage
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlodXNrcG5jZmF6eGRpa2tsa2RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2ODIwNDMsImV4cCI6MjA4MjI1ODA0M30.T7VopvE-dJ7sQugavWlKz0EliXKaVx-NGckRyw02YEk";
+
+    /**********************************************************
+     * MAIN FUNCTION
+     **********************************************************/
     async function runAI() {
       const question = document.getElementById("query").value.trim();
       const output = document.getElementById("output");
-      if (!question) { output.textContent = "❗ Please type a question first."; return; }
+
+      if (!question) {
+        output.textContent = "❗ Please type a question first.";
+        return;
+      }
+
       output.textContent = "Thinking…";
 
       try {
-        const res = await fetch(FUNCTION_URL, {
+        const response = await fetch(FUNCTION_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+          },
           body: JSON.stringify({ question })
         });
 
-        const data = await res.json();
-        if (!res.ok) output.textContent = "❌ Error: " + (data.error || res.status);
-        else output.textContent = JSON.stringify(data.answer, null, 2);
+        // ❌ Throw error if response is not ok
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || `Request failed (${response.status})`);
+        }
+
+        const data = await response.json();
+
+        // Display answer or fallback
+        output.textContent = data.answer ?? JSON.stringify(data, null, 2);
 
       } catch (err) {
+        console.error(err);
         output.textContent = "❌ Error: " + err.message;
       }
     }
 
+    // Attach click handler
     document.getElementById("askButton").addEventListener("click", runAI);
   </script>
+
 </body>
 </html>
